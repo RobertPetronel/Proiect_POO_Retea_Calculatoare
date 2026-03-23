@@ -45,6 +45,7 @@ class Calculator
 			nod(const int g) : grup_id(g), next(NULL) {}
 		};
 		nod* Lista = NULL, *tail = NULL;
+		int lista_len = 0;
 	public:
 		Utilizator(){}
 		Utilizator(const char* nume, const char* parola, const int id) : id(id)
@@ -67,6 +68,7 @@ class Calculator
 		}
 		void add_grup(int grup_id)
 		{
+			lista_len++;
 			if (Lista == NULL)
 			{
 				Lista = new nod(grup_id);
@@ -85,6 +87,7 @@ class Calculator
 				if (tail == Lista) tail = NULL;
 				delete Lista;
 				Lista = p;
+				lista_len--;
 			}
 			for (nod* it = Lista; it != NULL; it = it->next)
 				if (it->next && it->next->grup_id == grup_id)
@@ -93,13 +96,13 @@ class Calculator
 					it->next = p->next;
 					if (tail == p) tail = it;
 					delete p;
+					lista_len--;
 					return;
 				}
 		}
 		friend std::istream& operator>>(std::istream& fin, Utilizator& u)
 		{
 			if (!(fin >> u.id)) return fin;
-			fin.get();
 			fin.getline(u.nume, LEN_MAX);
 			fin.getline(u.password, LEN_MAX);
 			int n, x;
@@ -109,7 +112,18 @@ class Calculator
 				fin >> x;
 				u.add_grup(x);
 			}
+			fin.get(); fin.get();
 			return fin;
+		}
+		friend std::ostream& operator<<(std::ostream& fout, Utilizator& u)
+		{
+			fout << u.id << "\n";
+			fout << u.nume << "\n";
+			fout << u.password << "\n" << u.lista_len << "\n";
+			for (nod* p = u.Lista; p != NULL; p = p->next)
+				fout << p->grup_id << " ";
+			fout << "\n";
+			return fout;
 		}
 		bool validate(const char* nume, const char* parola)
 		{
@@ -145,6 +159,7 @@ class Calculator
 			nod(const int u) : user_id(u), next(NULL) {}
 		};
 		nod* Lista = NULL, *tail = NULL;
+		int lista_len = 0;
 	public:
 		Grup(){}
 		Grup(const char* nume, const int id)
@@ -174,6 +189,7 @@ class Calculator
 		}
 		void add_user(int user_id)
 		{
+			lista_len++;
 			if (Lista == NULL)
 			{
 				Lista = new nod(user_id);
@@ -192,6 +208,7 @@ class Calculator
 				if (tail == Lista) tail = NULL;
 				delete Lista;
 				Lista = p;
+				lista_len--;
 			}
 			for (nod* it = Lista; it != NULL; it = it->next)
 				if (it->next->user_id == user_id)
@@ -200,6 +217,7 @@ class Calculator
 					it->next = p->next;
 					if (tail == p) tail = it;
 					delete p;
+					lista_len--;
 					return;
 				}
 		}
@@ -216,6 +234,15 @@ class Calculator
 				g.add_user(x);
 			}
 			return fin;
+		}
+		friend std::ostream& operator<<(std::ostream& fout, Grup& g)
+		{
+			fout << g.id << "\n";
+			fout << g.nume << "\n" << g.lista_len << "\n";
+			for (nod* p = g.Lista; p != NULL; p = p->next)
+				fout << p->user_id << " ";
+			fout << "\n";
+			return fout;
 		}
 		~Grup()
 		{
@@ -238,7 +265,6 @@ class Calculator
 			nod_grup(int g, int perm) : grup_id(g), next(NULL), permisiuni(perm) {}
 		};
 		nod_grup* Lista_g, *tail_g;
-
 		struct nod_u
 		{
 			nod_u* next;
@@ -246,17 +272,31 @@ class Calculator
 			nod_u(int u, int  perm) : user_id(u), next(NULL), permisiuni(perm) {}
 		};
 		nod_u* Lista_u, *tail_u;
+		int lista_g_len;
+		int lista_u_len;
 		int generic_perm;
 	public:
-		Fisier() : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0) {strcpy(nume, "");}
-		Fisier(const char* nume) : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0)
+		Fisier() : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0),
+			lista_g_len(0), lista_u_len(0) {strcpy(nume, "");}
+		Fisier(const char* nume) : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0),
+			lista_g_len(0), lista_u_len(0) 
 		{
 			strcpy(this->nume, nume);
 		}
-		Fisier(const char* nume, int user_id) : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0)
+		Fisier(const char* nume, int user_id) : Lista_u(NULL), tail_u(NULL), Lista_g(NULL), tail_g(NULL), generic_perm(0),
+			lista_g_len(0), lista_u_len(0) 
 		{
 			strcpy(this->nume, nume);
 			change_user_perm(user_id, 3);
+		}
+		Fisier(const Fisier& ob): generic_perm(ob.generic_perm), lista_g_len(ob.lista_g_len), lista_u_len(ob.lista_u_len)
+				,Lista_g(NULL), tail_g(NULL), Lista_u(NULL), tail_u(NULL)
+		{
+			strcpy(nume, ob.nume);
+			for (nod_u* p = ob.Lista_u; p != NULL; p = p->next)
+				change_user_perm(p->user_id, p->permisiuni);
+			for (nod_grup* p = ob.Lista_g; p != NULL; p = p->next)
+				change_grup_perm(p->grup_id, p->permisiuni);
 		}
 		void change_grup_perm(int grup_id, int perm)
 		{
@@ -267,10 +307,11 @@ class Calculator
 				return;
 			}
 			if (!Lista_g) {
-				Lista_g = tail_g = new nod_grup(grup_id, perm);
+			{ Lista_g = tail_g = new nod_grup(grup_id, perm); lista_g_len = 1;}
 			} else {
 				tail_g->next = new nod_grup(grup_id, perm);
 				tail_g = tail_g->next;
+				lista_g_len++;
 			}
 		}
 		void change_user_perm(int user_id, int perm)
@@ -282,11 +323,46 @@ class Calculator
 				return;
 			}
 			if (!Lista_u) {
-				Lista_u = tail_u = new nod_u(user_id, perm);
+			{ Lista_u = tail_u = new nod_u(user_id, perm); lista_u_len = 1; }
 			} else {
 				tail_u->next = new nod_u(user_id, perm);
 				tail_u = tail_u->next;
+				lista_u_len++;
 			}
+		}
+		Fisier& operator=(const Fisier& ob)
+		{
+			if (this == &ob) return *this;
+			nod_u* pu = Lista_u;
+			while (pu)
+			{
+				nod_u* q = pu;
+				pu = pu->next;
+				delete q;
+			}
+			Lista_u = tail_u = NULL;
+
+			nod_grup* pg = Lista_g;
+			while (pg)
+			{
+				nod_grup* q = pg;
+				pg = pg->next;
+				delete q;
+			}
+			Lista_g = tail_g = NULL;
+
+			strcpy(nume, ob.nume);
+			generic_perm = ob.generic_perm;
+			lista_g_len = 0;
+			lista_u_len = 0;
+
+			for (nod_u* p = ob.Lista_u; p != NULL; p = p->next)
+				change_user_perm(p->user_id, p->permisiuni);
+
+			for (nod_grup* p = ob.Lista_g; p != NULL; p = p->next)
+				change_grup_perm(p->grup_id, p->permisiuni);
+
+			return *this;
 		}
 		bool operator==(const Fisier& f)
 		{
@@ -315,6 +391,18 @@ class Calculator
 			fin.get();
 			return fin;
 		}
+		friend std::ostream& operator<<(std::ostream& fout, Fisier& f)
+		{
+			fout << f.nume << "\n";
+			fout << "\n" << f.lista_g_len << "\n";
+			for (nod_grup* p = f.Lista_g; p != NULL; p = p->next)
+				fout << p->grup_id << " " << p->permisiuni << " ";
+			fout << "\n";
+			fout << f.lista_u_len << "\n";
+			for (nod_u* p = f.Lista_u; p != NULL; p = p->next)
+				fout << p->user_id << " " << p->permisiuni << " ";
+			return fout;
+		}
 		~Fisier()
 		{
 			nod_u*p = Lista_u;
@@ -337,14 +425,14 @@ class Calculator
 	{
 		struct nod
 		{
-			Fisier *f;
+			Fisier f;
 			nod* next;
-			nod(Fisier *file) : f(file), next(NULL){}
+			nod(Fisier& file) : f(file), next(NULL){}
 		};
 		nod* Lista, *tail;
 	public:
 		Lista_fisiere() : Lista(NULL), tail(NULL) {}
-		void add_fisier(Fisier* f)
+		void add_fisier(Fisier f)
 		{
 			if (Lista == NULL)
 			{
@@ -355,7 +443,7 @@ class Calculator
 			tail->next = new nod(f);
 			tail = tail->next;
 		}
-		void remove_fisier(Fisier *f)
+		void remove_fisier(Fisier& f)
 		{
 			if (Lista == NULL) return;
 			if (Lista->f == f)
@@ -373,6 +461,12 @@ class Calculator
 			p->next = q->next;
 			delete q;
 		}
+		friend std::ostream& operator<<(std::ostream& fout, Lista_fisiere &l)
+		{
+			for (nod*p = l.Lista; p != NULL; p = p->next)
+				fout << (p->f) << "\n";
+			return fout;
+		}
 		~Lista_fisiere()
 		{
 			nod* p = Lista;
@@ -380,7 +474,6 @@ class Calculator
 			{
 				nod*q = p;
 				p = p->next;
-				delete q->f;
 				delete q;
 			}
 		}
@@ -410,8 +503,8 @@ public:
 		}
 		std::ifstream f_fisier(fisier_fisiere);
 		while (true) {
-			Fisier* f = new Fisier;
-			if (!(f_fisier >> *f)){ delete f; break; }
+			Fisier f;
+			if (!(f_fisier >> f)) break; 
 			list.add_fisier(f);
 		}
 	}
@@ -429,7 +522,7 @@ public:
 	}
 	void make_file(const char* nume)
 	{
-		list.add_fisier(new Fisier(nume, user_logged_in));
+		list.add_fisier(Fisier(nume, user_logged_in));
 	}
 	bool exista_utilizatori()
 	{
@@ -444,7 +537,7 @@ public:
 		{
 			std::cout << "Introduce numele: ";
 			std::cin >> nume;
-			std::cout << "\nIntroduce parola: ";
+			std::cout << "Introduce parola: ";
 			std::cin >> parola;
 			for (int i = 0; i < (1<<16); i++)
 				if (utilizatori[i] != NULL)	
@@ -458,10 +551,20 @@ public:
 
 	~Calculator()
 	{
+		std::ofstream f_u(fisier_utilizatori), f_g(fisier_grup), f_f(fisier_fisiere);
+		f_f << list;
 		for (int i = 0; i < (1<<16); i++)
 		{
-			if (utilizatori[i] != NULL) delete utilizatori[i];
-			if (grupuri[i] != NULL) delete grupuri[i];
+			if (utilizatori[i] != NULL)
+			{
+				f_u << *utilizatori[i]; 
+				delete utilizatori[i];
+			}
+			if (grupuri[i] != NULL)
+			{
+				f_g << *grupuri[i];
+				delete grupuri[i];
+			}
 		}
 	}
 };
@@ -476,7 +579,7 @@ int main()
 	{
 		std::cout << "Introduce numele: ";
 		std::cin >> nume;
-		std::cout << "\nIntroduce parola: ";
+		std::cout << "Introduce parola: ";
 		std::cin >> parola;
 		c.Add_user(nume, parola);
 		std::cout << "\n";
@@ -484,7 +587,7 @@ int main()
 	}
 	int x;
 	do {
-		std::cout << "Actiunea dorita:\n0 - exit\n1 - adaugare utilizator\n2 - adaugare grup\n3- creare fisier vid";
+		std::cout << "Actiunea dorita:\n0 - exit\n1 - adaugare utilizator\n2 - adaugare grup\n3- creare fisier vid\n";
 		std::cin >> x;
 		switch(x)
 		{
