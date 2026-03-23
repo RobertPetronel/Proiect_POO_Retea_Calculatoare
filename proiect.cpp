@@ -31,7 +31,8 @@ class Calculator
 		}
 		void take_id(const int i) { taken_ids[i] = 1; }
 	}grup_id, user_id;
-	class Grup;
+
+	// clasa utilizator care asista la menajarea utilizatorilor
 	class Utilizator
 	{
 		static constexpr const char salt[50] = "$5$bpKU3bUSQLwX87z/$\0";
@@ -121,8 +122,7 @@ class Calculator
 			fout << u.nume << "\n";
 			fout << u.password << "\n" << u.lista_len << "\n";
 			for (nod* p = u.Lista; p != NULL; p = p->next)
-				fout << p->grup_id << " ";
-			fout << "\n";
+				fout << p->grup_id << "\n";
 			return fout;
 		}
 		bool validate(const char* nume, const char* parola)
@@ -148,6 +148,8 @@ class Calculator
 			}
 		}
 	};
+
+	// clasa grup care asista la menajarea grupurilor:
 	class Grup
 	{
 		int id;
@@ -240,8 +242,7 @@ class Calculator
 			fout << g.id << "\n";
 			fout << g.nume << "\n" << g.lista_len << "\n";
 			for (nod* p = g.Lista; p != NULL; p = p->next)
-				fout << p->user_id << " ";
-			fout << "\n";
+				fout << p->user_id << "\n";
 			return fout;
 		}
 		~Grup()
@@ -255,6 +256,8 @@ class Calculator
 			}
 		}
 	};
+
+	// menajarea fisierelor:
 	class Fisier
 	{
 		char nume[LEN_MAX];
@@ -393,14 +396,13 @@ class Calculator
 		}
 		friend std::ostream& operator<<(std::ostream& fout, Fisier& f)
 		{
-			fout << f.nume << "\n";
+			fout << f.nume;
 			fout << "\n" << f.lista_g_len << "\n";
 			for (nod_grup* p = f.Lista_g; p != NULL; p = p->next)
-				fout << p->grup_id << " " << p->permisiuni << " ";
-			fout << "\n";
+				fout << p->grup_id << " " << p->permisiuni << "\n";
 			fout << f.lista_u_len << "\n";
 			for (nod_u* p = f.Lista_u; p != NULL; p = p->next)
-				fout << p->user_id << " " << p->permisiuni << " ";
+				fout << p->user_id << " " << p->permisiuni << "\n";
 			return fout;
 		}
 		~Fisier()
@@ -483,6 +485,8 @@ class Calculator
 	int user_logged_in;
 	Lista_fisiere list;
 public:
+
+	// interfata:
 	Calculator()
 	{
 		memset(grupuri, 0, sizeof(grupuri));
