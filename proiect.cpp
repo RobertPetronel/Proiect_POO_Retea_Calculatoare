@@ -1,12 +1,20 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
-#include <crypt.h>
+//#include <crypt.h>
 #define LEN_MAX 256
 
 /*
 Proiectul rezolva problema menajarii fisierelor de mai multi utilizatori simultani
 Utilizatorii pot apartine mai multor grupuri simultan, astfel trebuie sa verificam toate grupurile
+Trebuie implementat mai multor capacitati si inbunatatirea interfatei
+admin_id = 0 (MEREU)
+lista comenzi:
+ls
+pmod
+make_usr
+make_file
+pswd
 */
 
 
@@ -32,6 +40,117 @@ class Calculator
 		void take_id(const int i) { taken_ids[i] = 1; }
 	}grup_id, user_id;
 
+	class Utilizator
+	{
+		int id;
+		char nume[LEN_MAX];
+		struct nod
+		{
+			int grup_id;
+			nod* next;
+			nod(const int g) : grup_id(g), next(NULL) {}
+		};
+		nod* Lista = NULL, *tail = NULL;
+		int lista_len = 0;
+	public:
+		Utilizator(){}
+		Utilizator(const char* nume, const int id) : id(id)
+		{
+			strcpy(this->nume, nume);
+		}
+		int get_id() const { return id; }
+		char* get_nume() const
+		{
+			char* ret = new char[1+strlen(nume)];
+			strcpy(ret, nume);
+			return ret;
+		}
+		Utilizator& change_nume(const char* nume)
+		{
+			strcpy(this->nume, nume);
+			return *this;
+		}
+		void add_grup(int grup_id)
+		{
+			lista_len++;
+			if (Lista == NULL)
+			{
+				Lista = new nod(grup_id);
+				tail = Lista;
+				return;
+			}
+			tail->next = new nod(grup_id);
+			tail = tail->next;
+		}
+		void remove_grup(int grup_id)
+		{
+			if (Lista == NULL) return;
+			if (Lista->grup_id == grup_id)
+			{
+				nod* p = Lista->next;
+				if (tail == Lista) tail = NULL;
+				delete Lista;
+				Lista = p;
+				lista_len--;
+			}
+			for (nod* it = Lista; it != NULL; it = it->next)
+				if (it->next && it->next->grup_id == grup_id)
+				{
+					nod* p = it->next;
+					it->next = p->next;
+					if (tail == p) tail = it;
+					delete p;
+					lista_len--;
+					return;
+				}
+		}
+		friend std::istream& operator>>(std::istream& fin, Utilizator& u)
+		{
+			if (!(fin >> u.id)) return fin;
+			fin.getline(u.nume, LEN_MAX);
+			int n, x;
+			fin >> n;
+			while(n--)
+			{
+				fin >> x;
+				u.add_grup(x);
+			}
+			fin.get(); fin.get();
+			return fin;
+		}
+		friend std::ostream& operator<<(std::ostream& fout, Utilizator& u)
+		{
+			fout << u.id << "\n";
+			fout << u.nume << "\n";
+			fout << u.lista_len << "\n";
+			for (nod* p = u.Lista; p != NULL; p = p->next)
+				fout << p->grup_id << "\n";
+			return fout;
+		}
+		bool validate(const char* nume)
+		{
+			return strcmp(this->nume, nume) == 0;
+		}
+		bool operator==(const Utilizator& u)
+		{
+			return id == u.id;
+		}
+		bool operator!=(const Utilizator& u)
+		{
+			return id != u.id;
+		}
+		~Utilizator()
+		{
+			nod* p = Lista, *q;
+			while (p)
+			{
+				q = p->next;
+				delete p;
+				p = q;
+			}
+		}
+	};
+/**
 	// clasa utilizator care asista la menajarea utilizatorilor
 	class Utilizator
 	{
@@ -148,7 +267,7 @@ class Calculator
 			}
 		}
 	};
-
+*/
 	// clasa grup care asista la menajarea grupurilor:
 	class Grup
 	{
@@ -512,11 +631,18 @@ public:
 			list.add_fisier(f);
 		}
 	}
+	/**
 	void Add_user(const char* nume, const char* parola)
 	{
 		int id = user_id.get_valid_id();
 		user_id.take_id(id);
 		utilizatori[id] = new Utilizator(nume, parola, id);
+	}
+	*/
+	void Add_user(const char* nume)
+	{
+		int id = user_id.get_valid_id();
+		user_id.take_id(id);
 	}
 	void Add_grup(const char* nume)
 	{
@@ -530,10 +656,8 @@ public:
 	}
 	bool exista_utilizatori()
 	{
-		int i;
-		for (i = 0; i < (1<<16) && utilizatori[i] == NULL; i++);
-		return i < (1<<16);
-	}
+		return utilizatori[0] != NULL;
+	}/**
 	void login()
 	{
 		char nume[LEN_MAX], parola[LEN_MAX];
@@ -547,6 +671,25 @@ public:
 				if (utilizatori[i] != NULL)	
 				{
 					if (utilizatori[i]->validate(nume, parola)) 
+					{ user_logged_in = i; return; }
+			}
+			std::cout << "Logare esuata\n";
+		}
+	}*/
+
+	void login()
+	{
+		char nume[LEN_MAX], parola[LEN_MAX];
+		while(user_logged_in == -1)
+		{
+			std::cout << "Introduce numele: ";
+			std::cin >> nume;
+			std::cout << "Introduce parola: ";
+			std::cin >> parola;
+			for (int i = 0; i < (1<<16); i++)
+				if (utilizatori[i] != NULL)	
+				{
+					if (utilizatori[i]->validate(nume)) 
 					{ user_logged_in = i; return; }
 			}
 			std::cout << "Logare esuata\n";
@@ -583,9 +726,12 @@ int main()
 	{
 		std::cout << "Introduce numele: ";
 		std::cin >> nume;
+		/**
 		std::cout << "Introduce parola: ";
 		std::cin >> parola;
-		c.Add_user(nume, parola);
+		*/
+		//c.Add_user(nume, parola);
+		c.Add_user(nume);
 		std::cout << "\n";
 		c.login();
 	}
@@ -599,9 +745,12 @@ int main()
 		case 1:
 			std::cout << "Introduce numele: ";
 			std::cin >> nume;
-			std::cout << "\nIntroduce parola: ";
+			/**
+			std::cout << "Introduce parola: ";
 			std::cin >> parola;
 			c.Add_user(nume, parola);
+			*/
+			c.Add_user(nume);
 			break;
 		case 2:
 			std::cout << "Introduce numele: ";
