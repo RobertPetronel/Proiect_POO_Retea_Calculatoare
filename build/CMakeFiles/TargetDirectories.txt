@@ -1,0 +1,3 @@
+/home/Robert/code/Proiecte/POO_tema/build/CMakeFiles/Proiect.dir
+/home/Robert/code/Proiecte/POO_tema/build/CMakeFiles/edit_cache.dir
+/home/Robert/code/Proiecte/POO_tema/build/CMakeFiles/rebuild_cache.dir
