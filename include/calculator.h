@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include "director.h"
+#include "exec.h"
 
 class calculator
 {
@@ -11,7 +12,7 @@ class calculator
 	std::vector<bool> user_activ;
 	std::unordered_map<std::string, Executabil*> comenzi;
 	Director root;
-	std::string pwd;
+	std::string root_path, pwd;
 	int curent_user_id;
 public:
 	calculator();

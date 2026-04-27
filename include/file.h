@@ -1,14 +1,15 @@
 #pragma once
-#include "DateFisier.h"
+#include "date_fisier.h"
 
 class File : public DateFisier
 {
+public:
+	enum class tip {TEXT, IMAGE, VIDEO, AUDIO, ZIP};
+	File(const DateFisier&, int size, const tip);
+	File(const char*, const char*, size_t , const Utilizator*, size_t, tip);
+	size_t get_size() const override;
+	void open() const;
 private:
 	size_t size;
-	enum class tip {TEXT, IMAGE, VIDEO, AUDIO, ZIP};
 	tip tip_fisier;
-public:
-	File(const DateFisier&, int size, const tip);
-	File(const char*, const char*, size_t , Utilizator*, size_t, tip);
-	void open() const;
 };

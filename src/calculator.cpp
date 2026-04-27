@@ -1,6 +1,7 @@
 #include "date_fisier.h"
 #include "comenzi.h"
 #include "calculator.h"
+#include "director.h"
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
@@ -12,15 +13,16 @@
 
 
 calculator::calculator()
-    : root(), pwd(std::filesystem::current_path().string()), curent_user_id(-1)
+    : root(), root_path(std::filesystem::current_path().string() + "/root"), pwd("/"), curent_user_id(-1)
 {
     Utilizator root_user("root", "admin");
     users[users.size()] = root_user;
     user_activ.push_back(true);
-    
+
     root = Director("root", "root", static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>
         (std::chrono::system_clock::now().time_since_epoch()).count()), &users[0]);
-    
+    std::filesystem::create_directory(root_path);
+
     comenzi["mkdir"] = new mkdir();
     comenzi["ls"] = new ls();
     comenzi["cd"] = new cd();
@@ -85,13 +87,15 @@ void calculator::run()
 {
     std::string command_line;
     std::cout << "Bine ai venit! Introdu comenzi. Tipul 'exit' pentru a incheia.\n";
-    while (true) {
+    while (true)
+    {
         std::cout << this->pwd << "> ";
         std::getline(std::cin, command_line);
 
         std::transform(command_line.begin(), command_line.end(), command_line.begin(), ::tolower);
 
-        if (command_line == "exit") {
+        if (command_line == "exit")
+        {
             std::cout << "Iesire din aplicatie...\n";
             break;
         }
@@ -99,13 +103,13 @@ void calculator::run()
         std::istringstream iss(command_line);
         std::string command;
         std::vector<std::string> args;
-        args.push_back(pwd);
+        args.push_back(root_path + pwd);
         
         iss >> command;
+        args.push_back(command);
         std::string arg;
         while (iss >> arg)
             args.push_back(arg);
-
         if (comenzi.find(command) != comenzi.end())
             pwd = comenzi[command]->run(args);
         else 

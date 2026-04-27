@@ -1,8 +1,9 @@
-#include <cstring.h>
+#include <cstring>
 #include "grupa.h"
+#include "utilizator.h"
 
 Utilizator::Utilizator() : nume(NULL), g() {}
-Utilizator::Utilizator(char* nume) : g()
+Utilizator::Utilizator(const char* nume) : g()
 {
 	if (!nume) {this->nume = NULL; return;}
 	this->nume = new char[1+strlen(nume)];
@@ -14,7 +15,7 @@ Utilizator::Utilizator(const char* nume, const char* nume_grup) : g(nume_grup)
 	this->nume = new char[1+strlen(nume)];
 	strcpy(this->nume, nume);
 }
-Utilizator::Utilizator(char* nume, const Grupa& grupa) : g(grupa)
+Utilizator::Utilizator(const char* nume, const Grupa& grupa) : g(grupa)
 {
 	this->nume = new char[1+strlen(nume)];
 	strcpy(this->nume, nume);

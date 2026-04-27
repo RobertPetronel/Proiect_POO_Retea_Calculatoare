@@ -1,5 +1,6 @@
-#include <cstring.h>
+#include <cstring>
 #include "grupa.h"
+#include "date_fisier.h"
 
 DateFisier::DateFisier(const char* nume,
                        const char* path,

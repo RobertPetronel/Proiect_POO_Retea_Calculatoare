@@ -1,4 +1,5 @@
 #include "file.h"
+#include <cstddef>
 
 File::File(const DateFisier& df, int size, const tip t)
     : DateFisier(df)
@@ -9,10 +10,11 @@ File::File(const DateFisier& df, int size, const tip t)
 File::File(const char* nume,
            const char* path,
            size_t data_crearii,
-           Utilizator* creator,
+           const Utilizator* creator,
            size_t size,
-           tip t)
-    : DateFisier(nume, path, data_crearii, creator)
+           File::tip t)
+    : DateFisier(nume, path, data_crearii, creator),
+    tip_fisier(t)
 {
     this->size = size;
 }

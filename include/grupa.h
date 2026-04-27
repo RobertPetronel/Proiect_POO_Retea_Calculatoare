@@ -7,7 +7,7 @@ class Grupa
 public:
 	// constructori
 	Grupa();
-	Grupa(char*);
+	Grupa(const char*);
 	// constructorul de copiere
 	Grupa(const Grupa&);
 	// operatorul de asignare
@@ -18,7 +18,7 @@ public:
 	bool operator==(const Grupa& g) const;
 	bool operator!=(const Grupa& g) const;
 	// getter
-	char* get_nume() const;
+	const char* get_nume() const;
 	// setter
 	void change_nume(char*);
 	// destructor

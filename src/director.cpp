@@ -1,8 +1,10 @@
 #include "director.h"
-#include <cstring.h>
+#include <cstring>
 #include <string>
 
-int Director::find(const DateFisier* f)
+Director::Director() : DateFisier(), copii() {}
+
+int Director::find_poz(const DateFisier* f)
 {
     for (int i = 0; i < copii.size(); i++)
         if (copii[i] == f)
@@ -18,7 +20,7 @@ void Director::add(const DateFisier* f)
 
 void Director::remove(const DateFisier* f)
 {
-    int pos = find(f);
+    int pos = find_poz(f);
 
     if (pos == -1)
         return;
@@ -27,8 +29,17 @@ void Director::remove(const DateFisier* f)
     copii.erase(copii.begin() + pos);
 }
 
+Director* Director::find_subdirectory(const std::string& nume) const
+{
+    for (auto e : copii)
+        if (Director* dir = dynamic_cast<Director*>(e))
+            if (dir->get_nume() == nume)
+                return dir;
+    return NULL;
+}
+
 std::vector<DateFisier*>::iterator
-Director::find(const DateFisier* f) const
+Director::find(const DateFisier* f)
 {
     for (auto it = copii.begin(); it != copii.end(); ++it)
         if (*it == f)
@@ -37,26 +48,17 @@ Director::find(const DateFisier* f) const
     return copii.end();
 }
 
-Director* Director::find_subdirectory(const std::string nume) const
-{
-    for (audo e : copii)
-        if (Director* dir = dynamic_cast<Director*>(e))
-            if (dir->get_nume() == nume)
-                return dir;
-    return NULL
-}
-
-std::vector<DateFisier*>::iterator Director::begin() const
+std::vector<DateFisier*>::iterator Director::begin()
 {
     return copii.begin();
 }
 
-std::vector<DateFisier*>::iterator Director::end() const
+std::vector<DateFisier*>::iterator Director::end()
 {
     return copii.end();
 }
 
-size_t Director::get_size() const override
+size_t Director::get_size() const
 {
     return 0;
 }

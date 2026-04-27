@@ -1,8 +1,8 @@
-#include <cstring.h>
+#include <cstring>
 #include "grupa.h"
 
 Grupa::Grupa() : nume(NULL) {}
-Grupa::Grupa(char* nume)
+Grupa::Grupa(const char* nume)
 {
 	if (!nume) {this->nume = NULL; return;}
 	this->nume = new char[1+strlen(nume)];
